@@ -1,0 +1,117 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+    string message = ViewData["message"] == null ? "" : ViewData["message"].ToString();
+}
+
+<div class="content">
+    <div class="container-fluid">
+        <section class="content">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+
+                        @if (message != "")
+                        {
+                            if (message == "success")
+                            {
+                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                    <strong>Success!</strong> Data inserted successfully.
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <strong>Failed!</strong> Insert data failed.
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            }
+                        }
+
+                        <div class="card-header">
+                            <form asp-action="InsertCsv" method="post">
+                                @Html.AntiForgeryToken()
+                                <div>
+                                    <button type="submit" class="btn btn-primary">Insert Data</button>
+                                </div>
+                            </form>
+
+                            <div class="form-inline">
+                                <div class="form-group">
+                                    <input type="text" class="form-control" id="keywordInput" placeholder="Keyword" />
+                                </div>
+                                <button type="submit" class="btn btn-primary" id="SearchData">Search Data</button>
+                            </div>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table id="datatable" class="table table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>String ID</th>
+                                            <th>String Content</th>
+                                            <th>Match Time</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "__AjaxAntiForgeryForm" }))
+{
+    @Html.AntiForgeryToken()
+}
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        oTable = $('#datatable').DataTable({
+            "searching": false,
+        });
+
+    });
+
+    $("#SearchData").click(function () {
+        var form = $('#__AjaxAntiForgeryForm');
+        var token = $('input[name="__RequestVerificationToken"]', form).val();
+        oTable.destroy();
+        oTable = $("#datatable").DataTable(
+            {
+                "searching": false,
+                "ajax": {
+                    "type": "POST",
+                    "url": "/Home/SearchCsv",
+                    "data": function (data) {
+                        data.__RequestVerificationToken = token;
+                        data.keyword = $("#keywordInput").val();
+                        return data = data;
+                    }
+                },
+                "columns": [
+                    {
+                        "data": "id",
+                    },
+                    {
+                        "data": "content"
+                    },
+                    {
+                        "data": "matchTimes"
+                    }
+                ]
+            }
+        );
+
+        oTable.DataTable
+    });
+
+</script>
